@@ -1,0 +1,87 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>通訊錄</title>
+<script type="text/javascript">
+function insertcontact(){
+	var tmp = [];
+	var data_array = document.getElementsByClassName("data_input");
+	for(var i=0; i<data_array.length; i++){
+		if(data_array[i].value.trim() == ""){
+			alert("請將欄位填好");	
+			return;
+		}else{
+			tmp.push('"' + data_array[i].value.trim() + '"');
+		}
+	}
+	
+	var db = openDatabase('mydb', '1.0', 'my first database', 2 * 1024 * 1024);
+	db.transaction(function (tx) {
+	  tx.executeSql('CREATE TABLE IF NOT EXISTS contact (id INTEGER PRIMARY KEY, name TEXT, address TEXT, phone TEXT)');
+	  tx.executeSql('INSERT INTO contact (name, address, phone) VALUES (' + tmp.toString() + ')');
+	});
+	showcontact();
+}
+
+function showcontact(){
+	var contact_table = document.getElementById("contact_table");
+	contact_table.innerHTML = "<tr><td>ID</td><td>姓名</td><td>住址</td><td>電話</td></tr>";
+	var db = openDatabase('mydb', '1.0', 'my first database', 2 * 1024 * 1024);
+	db.transaction(function (tx) {
+		tx.executeSql('SELECT * FROM contact', [], function (tx, results) {
+			var len = results.rows.length;
+			for (var i = 0; i < len; i++) {
+				var tmp = "";
+				tmp += "<td>" + results.rows.item(i).id + "</td>";
+				tmp += "<td>" + results.rows.item(i).name + "</td>";
+				tmp += "<td>" + results.rows.item(i).address + "</td>";
+				tmp += "<td>" + results.rows.item(i).phone + "</td>";
+				contact_table.innerHTML += "<tr>" + tmp + "</tr>";
+			}
+		});
+	});	
+}
+
+function deletecontact(){
+	var tt1 = document.getElementById("tt1").value.trim();
+	if(tt1 == ""){
+		alert("請將欄位填好");	
+	}else{
+		var db = openDatabase('mydb', '1.0', 'my first database', 2 * 1024 * 1024);
+		db.transaction(function (tx) {
+			tx.executeSql('DELETE FROM contact WHERE id=' + tt1);
+		});
+		showcontact();
+	}
+}
+</script>
+</head>
+<body>
+<a href="index.html">我的首頁</a>
+<a href="calc.html">小算盤</a>
+<a href="contact.html">通訊錄</a>
+<h1>通訊錄</h1>
+<table>
+<tbody>
+	<tr><td>姓名：</td><td><input class="data_input" type="text" /></td></tr>
+	<tr><td>住址：</td><td><input class="data_input" type="text" /></td></tr>
+	<tr><td>電話：</td><td><input class="data_input" type="text" /></td></tr>
+    <tr><td><input type="button" value="新增" onclick="insertcontact()"/></td></tr>
+</tbody>
+</table>
+<br /><br /><br />
+<h1>我的通訊錄</h1>
+ID：<input id="tt1" type="text" size="10" /> <input type="button" value="刪除" onclick="deletecontact()" />
+<br /><br />
+<table border="1">
+<tbody id="contact_table">
+<tr><td>ID</td><td>姓名</td><td>住址</td><td>電話</td></tr>
+</tbody>
+</table>
+
+<script type="text/javascript">
+showcontact();
+</script>
+</body>
+</html>
